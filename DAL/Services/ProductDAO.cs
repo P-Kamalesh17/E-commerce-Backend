@@ -37,6 +37,7 @@ namespace DAL.Services
                 Name = createProductVM.Name,
                 CategoryId = createProductVM.CategoryId,
                 Description = createProductVM.Description,
+                ImageUrl = createProductVM.ImageUrl,
                 Price = createProductVM.Price,
                 StockQuantity = createProductVM.StockQuantity,
                 CreatedAt = DateTime.UtcNow
@@ -69,6 +70,7 @@ namespace DAL.Services
                     Id = p.Id,
                     Name = p.Name,
                     Description = p.Description,
+                    ImageUrl = p.ImageUrl,
                     Price = p.Price,
                     StockQuantity = p.StockQuantity,
                     CreatedAt = p.CreatedAt,
@@ -88,6 +90,7 @@ namespace DAL.Services
                     Id = p.Id,
                     Name = p.Name,
                     Description = p.Description,
+                    ImageUrl = p.ImageUrl,
                     Price = p.Price,
                     StockQuantity = p.StockQuantity,
                     CreatedAt = p.CreatedAt,
@@ -107,6 +110,7 @@ namespace DAL.Services
                     Id = p.Id,
                     Name = p.Name,
                     Description = p.Description,
+                    ImageUrl = p.ImageUrl,
                     Price = p.Price,
                     StockQuantity = p.StockQuantity,
                     CreatedAt = p.CreatedAt,
@@ -144,6 +148,7 @@ namespace DAL.Services
 
             product.Name = createProductVM.Name;
             product.Description = createProductVM.Description;
+            product.ImageUrl = createProductVM.ImageUrl;
             product.CategoryId = createProductVM.CategoryId;
             product.Price = createProductVM.Price;
             product.StockQuantity = createProductVM.StockQuantity;
@@ -179,6 +184,7 @@ namespace DAL.Services
                     Id = p.Id,
                     Name = p.Name,
                     Description = p.Description,
+                    ImageUrl = p.ImageUrl,
                     Price = p.Price,
                     StockQuantity = p.StockQuantity,
                     CreatedAt = p.CreatedAt,

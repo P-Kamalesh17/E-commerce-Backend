@@ -77,6 +77,7 @@ namespace DAL.Data
                         {
                             Name = "iPhone 15 Pro",
                             Description = "Latest Apple smartphone with advanced features",
+                            ImageUrl = "https://via.placeholder.com/300x300?text=iPhone+15+Pro",
                             Price = 999.99m,
                             StockQuantity = 50,
                             CategoryId = 1,
@@ -86,6 +87,7 @@ namespace DAL.Data
                         {
                             Name = "Cotton T-Shirt",
                             Description = "Comfortable and durable cotton t-shirt",
+                            ImageUrl = "https://via.placeholder.com/300x300?text=Cotton+T-Shirt",
                             Price = 29.99m,
                             StockQuantity = 100,
                             CategoryId = 2,

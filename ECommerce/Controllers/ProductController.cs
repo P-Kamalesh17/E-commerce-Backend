@@ -1,6 +1,7 @@
 ﻿using BLL;
 using DAL.DTO;
 using DAL.DTO.Authentication;
+using ECommerce.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,14 +14,17 @@ namespace ECommerce.API.Controllers
     {
         private readonly ProductBLL _productBLL;
         private readonly ILogger<ProductController> _logger;
+        private readonly IFileUploadService _fileUploadService;
 
         public ProductController(
             ProductBLL productBLL,
-            ILogger<ProductController> logger
+            ILogger<ProductController> logger,
+            IFileUploadService fileUploadService
            )
         {
             _productBLL = productBLL;
             _logger = logger;
+            _fileUploadService = fileUploadService;
         }
 
         [HttpGet("get-all-products")]
@@ -269,6 +273,47 @@ namespace ECommerce.API.Controllers
                 {
                     message = "Error while filtering products.",
                     error = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("upload-image")]
+        [Authorize(Roles = UserRoles.Admin)]
+        public async Task<IActionResult> UploadImage(IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest(new { message = "No file provided." });
+                }
+
+                var imagePath = await _fileUploadService.UploadImageAsync(file);
+
+                _logger.LogInformation("Image uploaded successfully: {ImagePath}.", imagePath);
+
+                return Ok(new
+                {
+                    message = "Image uploaded successfully.",
+                    imageUrl = imagePath
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Invalid file upload.");
+
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while uploading image.");
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "An error occurred while uploading the image."
                 });
             }
         }

@@ -3,12 +3,20 @@ using BLL;
 using DAL.Data;
 using DAL.Models;
 using DAL.Services;
+using ECommerce.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
+
+// Must exist before WebApplication.CreateBuilder() runs — its static web assets
+// loader throws DirectoryNotFoundException if wwwroot is missing, and even once
+// past that, WebRootFileProvider is resolved from whatever's on disk at startup,
+// so a wwwroot created later (e.g. lazily by FileUploadService on first upload)
+// is never picked up by UseStaticFiles().
+Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "products"));
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,6 +67,9 @@ builder.Services.AddScoped<OrderItemDAO>();
 builder.Services.AddScoped<OrderItemBLL>();
 builder.Services.AddScoped<PaymentDAO>();
 builder.Services.AddScoped<PaymentBLL>();
+
+// Register File Upload Service
+builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 
 //Authentication AND Authorization
 
@@ -131,6 +142,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Enable static files for image serving
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();
