@@ -1,13 +1,17 @@
 ﻿using BLL;
 using DAL.DTO;
+using DAL.DTO.Authentication;
 using DAL.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ECommerce.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class OrderController : ControllerBase
     {
         private readonly OrderBLL _orderBLL;
@@ -21,6 +25,7 @@ namespace ECommerce.API.Controllers
             _logger = logger;
         }
         [HttpGet("get-all-orders")]
+        [Authorize(Roles = UserRoles.Admin + "," + UserRoles.Shipment)]
         public async Task<IActionResult> GetAllOrders([FromQuery] OrderStatus? orderStatus)
         {
             try
@@ -46,10 +51,23 @@ namespace ECommerce.API.Controllers
         {
             try
             {
-                _logger.LogInformation("Fetching order with ID {OrderId}.", id);
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userRole = User.FindFirstValue(ClaimTypes.Role);
 
-                var res = await _orderBLL.GetOrderById(id);
-                return Ok(res);
+                var order = await _orderBLL.GetOrderById(id);
+                if (order == null)
+                {
+                    return NotFound(new { message = "Order not found." });
+                }
+
+                if (userRole != "Admin" && userRole != "Shipment" && order.UserId != currentUserId)
+                {
+                    _logger.LogWarning("User {CurrentUserId} attempted to access order {OrderId}.", currentUserId, id);
+                    return Forbid();
+                }
+
+                _logger.LogInformation("Fetching order with ID {OrderId}.", id);
+                return Ok(order);
             }
             catch (Exception ex)
             {
@@ -62,13 +80,22 @@ namespace ECommerce.API.Controllers
                 });
             }
         }
+
         [HttpGet("get-orders-by-userid/{userid}")]
         public async Task<IActionResult> GetOrdersByUserId(string userid)
         {
             try
             {
-                _logger.LogInformation("Fetching orders for user {UserId}.", userid);
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userRole = User.FindFirstValue(ClaimTypes.Role);
 
+                if (userRole != "Admin" && currentUserId != userid)
+                {
+                    _logger.LogWarning("User {CurrentUserId} attempted to access orders for user {UserId}.", currentUserId, userid);
+                    return Forbid();
+                }
+
+                _logger.LogInformation("Fetching orders for user {UserId}.", userid);
                 var res = await _orderBLL.GetOrdersByUserId(userid);
                 return Ok(res);
             }
@@ -84,6 +111,7 @@ namespace ECommerce.API.Controllers
             }
         }
         [HttpGet("get-orders-by-status/{status}")]
+        [Authorize(Roles = UserRoles.Admin + "," + UserRoles.Shipment)]
         public async Task<IActionResult> GetOrdersByStatus([FromQuery] OrderStatus status)
         {
             try
@@ -105,6 +133,7 @@ namespace ECommerce.API.Controllers
             }
         }
         [HttpGet("get-pending-orders")]
+        [Authorize(Roles = UserRoles.Admin + "," + UserRoles.Shipment)]
         public async Task<IActionResult> GetPendingOrders()
         {
             try
@@ -127,6 +156,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpPost("create-order")]
+        [Authorize(Roles = UserRoles.User + "," + UserRoles.Admin)]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderVM createOrderVM)
         {
             try
@@ -173,6 +203,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpPut("update-order/{id}")]
+        [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> UpdateOrder(int id, [FromBody] UpdateOrderVM updateOrderVM)
         {
             try
@@ -219,6 +250,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpPatch("update-order-status/{id}")]
+        [Authorize(Roles = UserRoles.Shipment + "," + UserRoles.Admin)]
         public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] UpdateOrderStatusVM updateOrderStatusVM)
         {
             try
@@ -253,6 +285,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpPatch("cancel-order/{id}")]
+        [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> CancelOrder(int id)
         {
             try
@@ -287,6 +320,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpDelete("delete-order/{id}")]
+        [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> DeleteOrder(int id)
         {
             try

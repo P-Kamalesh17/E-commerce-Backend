@@ -1,40 +1,56 @@
 ﻿using DAL.Data;
+using DAL.DTO.Authentication;
 using DAL.Models;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DAL.Data
 {
     public class AppDbInitializer
     {
-        public static void Seed(IApplicationBuilder applicationBuilder)
+        public static async Task Seed(IApplicationBuilder applicationBuilder)
         {
             using (var serviceScope = applicationBuilder.ApplicationServices.CreateScope())
             {
                 var context = serviceScope.ServiceProvider.GetService<AppDbContext>();
+                var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
                 // Seed Users
                 if (!context.Users.Any())
                 {
-                    context.Users.AddRange(
-                        new User()
-                        {
-                            UserName = "admin@example.com",
-                            Email = "admin@example.com",
-                            FullName = "Admin User",
-                            Address = "123 Admin Street",
-                            CreatedAt = DateTime.UtcNow
-                        },
-                        new User()
-                        {
-                            UserName = "customer@example.com",
-                            Email = "customer@example.com",
-                            FullName = "Customer User",
-                            Address = "456 Customer Avenue",
-                            CreatedAt = DateTime.UtcNow
-                        }
-                    );
-                    context.SaveChanges();
+                    var admin = new User()
+                    {
+                        UserName = "admin@example.com",
+                        Email = "admin@example.com",
+                        FullName = "Admin User",
+                        Address = "123 Admin Street",
+                        CreatedAt = DateTime.UtcNow,
+                        SecurityStamp = Guid.NewGuid().ToString()
+                    };
+                    await userManager.CreateAsync(admin, "Admin17@gmail");
+
+                    var shipment = new User()
+                    {
+                        UserName = "shipment@example.com",
+                        Email = "shipment@example.com",
+                        FullName = "Shipment User",
+                        Address = "789 Shipment Lane",
+                        CreatedAt = DateTime.UtcNow,
+                        SecurityStamp = Guid.NewGuid().ToString()
+                    };
+                    await userManager.CreateAsync(shipment, "Shipment17@gmail");
+
+                    var customer = new User()
+                    {
+                        UserName = "customer@example.com",
+                        Email = "customer@example.com",
+                        FullName = "Customer User",
+                        Address = "456 Customer Avenue",
+                        CreatedAt = DateTime.UtcNow,
+                        SecurityStamp = Guid.NewGuid().ToString()
+                    };
+                    await userManager.CreateAsync(customer, "Customer17@gmail");
                 }
 
                 // Seed Categories
@@ -153,6 +169,46 @@ namespace DAL.Data
                         }
                     );
                     context.SaveChanges();
+                }
+            }
+        }
+        public static async Task SeedRoles(IApplicationBuilder applicationBuilder)
+        {
+            using (var serviceScope = applicationBuilder.ApplicationServices.CreateScope())
+            {
+                var roleManager = serviceScope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();
+
+                if(!await roleManager.RoleExistsAsync("Admin"))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(UserRoles.Admin));
+                }
+                if (!await roleManager.RoleExistsAsync("User"))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(UserRoles.User));
+                }
+                if (!await roleManager.RoleExistsAsync("Shipment"))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(UserRoles.Shipment));
+                }
+
+                // Assign roles to users
+                var adminUser = await userManager.FindByEmailAsync("admin@example.com");
+                if (adminUser != null)
+                {
+                    await userManager.AddToRoleAsync(adminUser, UserRoles.Admin);
+                }
+
+                var shipmentUser = await userManager.FindByEmailAsync("shipment@example.com");
+                if (shipmentUser != null)
+                {
+                    await userManager.AddToRoleAsync(shipmentUser, UserRoles.Shipment);
+                }
+
+                var customerUser = await userManager.FindByEmailAsync("customer@example.com");
+                if (customerUser != null)
+                {
+                    await userManager.AddToRoleAsync(customerUser, UserRoles.User);
                 }
             }
         }

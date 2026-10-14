@@ -50,6 +50,7 @@ namespace DAL.Services
                 throw new InvalidOperationException(
                     "A user with this email already exists.");
             }
+    
 
             var user = new User
             {

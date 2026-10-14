@@ -1,12 +1,16 @@
 using BLL;
 using DAL.DTO;
+using DAL.DTO.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ECommerce.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class PaymentController : ControllerBase
     {
         private readonly PaymentBLL _paymentBLL;
@@ -21,6 +25,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpGet("get-all-payments")]
+        [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> GetAllPayments()
         {
             try
@@ -47,6 +52,9 @@ namespace ECommerce.API.Controllers
         {
             try
             {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userRole = User.FindFirstValue(ClaimTypes.Role);
+
                 _logger.LogInformation("Fetching payment with ID {PaymentId}.", id);
 
                 var res = await _paymentBLL.GetPaymentById(id);
@@ -56,6 +64,16 @@ namespace ECommerce.API.Controllers
                     _logger.LogWarning("Payment with ID {PaymentId} not found.", id);
 
                     return NotFound(new { message = "Payment not found." });
+                }
+
+                // Admin and Shipment can view any payment
+                // User can only view their own payments (need to check order ownership)
+                if (userRole != UserRoles.Admin && userRole != UserRoles.Shipment)
+                {
+                    // For users, we need to verify they own the order this payment belongs to
+                    // This is a simplified check - you may need to fetch the order to validate
+                    _logger.LogWarning("User {CurrentUserId} attempted to access payment {PaymentId}.", currentUserId, id);
+                    return Forbid();
                 }
 
                 return Ok(res);
@@ -77,6 +95,9 @@ namespace ECommerce.API.Controllers
         {
             try
             {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userRole = User.FindFirstValue(ClaimTypes.Role);
+
                 _logger.LogInformation("Fetching payment for order ID {OrderId}.", orderId);
 
                 var res = await _paymentBLL.GetPaymentByOrderId(orderId);
@@ -86,6 +107,14 @@ namespace ECommerce.API.Controllers
                     _logger.LogWarning("No payment found for order ID {OrderId}.", orderId);
 
                     return NotFound(new { message = "No payment found for this order." });
+                }
+
+                // Admin and Shipment can view any payment
+                // User can only view payments for their own orders (validation needed)
+                if (userRole != UserRoles.Admin && userRole != UserRoles.Shipment)
+                {
+                    _logger.LogWarning("User {CurrentUserId} attempted to access payment for order {OrderId}.", currentUserId, orderId);
+                    return Forbid();
                 }
 
                 return Ok(res);
@@ -107,6 +136,17 @@ namespace ECommerce.API.Controllers
         {
             try
             {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userRole = User.FindFirstValue(ClaimTypes.Role);
+
+                // Admin and Shipment can view any user's payments
+                // User can only view their own payments
+                if (userRole != UserRoles.Admin && userRole != UserRoles.Shipment && currentUserId != userId)
+                {
+                    _logger.LogWarning("User {CurrentUserId} attempted to access payments for user {UserId}.", currentUserId, userId);
+                    return Forbid();
+                }
+
                 _logger.LogInformation("Fetching payments for user {UserId}.", userId);
 
                 var res = await _paymentBLL.GetPaymentsByUserId(userId);
@@ -125,6 +165,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpPost("create-payment")]
+        [Authorize(Roles = UserRoles.User + "," + UserRoles.Admin)]
         public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentVM createPaymentVM)
         {
             try
@@ -165,6 +206,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpPost("confirm-payment/{id}")]
+        [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> ConfirmPayment(int id)
         {
             try
@@ -199,6 +241,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpPost("fail-payment/{id}")]
+        [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> FailPayment(int id)
         {
             try
@@ -233,6 +276,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpPost("refund-payment/{id}")]
+        [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> RefundPayment(int id)
         {
             try
@@ -267,6 +311,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpPatch("update-payment-status/{id}")]
+        [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> UpdatePaymentStatus(int id, [FromBody] UpdatePaymentStatusVM updatePaymentStatusVM)
         {
             try

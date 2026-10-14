@@ -1,11 +1,14 @@
 ﻿using BLL;
 using DAL.DTO;
+using DAL.DTO.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ProductController : ControllerBase
     {
         private readonly ProductBLL _productBLL;
@@ -21,6 +24,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpGet("get-all-products")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllProducts()
         {
             try
@@ -42,6 +46,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpGet("get-product-by-id/{id:int}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetProductById(int id)
         {
             try
@@ -72,6 +77,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpGet("get-by-category/{categoryId:int}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetProductsByCategoryId(int categoryId)
         {
             try
@@ -98,6 +104,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpPost("create-product")]
+        [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> CreateProduct(
             [FromBody] CreateProductVM createProductVM)
         {
@@ -142,6 +149,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpPut("update-product-by-id/{id:int}")]
+        [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> UpdateProductById(
             int id,
             [FromBody] CreateProductVM createProductVM)
@@ -187,6 +195,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpDelete("delete-product-by-id/{id:int}")]
+        [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> DeleteProductById(int id)
         {
             try
@@ -220,6 +229,7 @@ namespace ECommerce.API.Controllers
             }
         }
         [HttpGet("filter")]
+        [AllowAnonymous]
         public async Task<IActionResult> FilterProducts(
             [FromQuery] decimal? minPrice,
             [FromQuery] decimal? maxPrice,

@@ -1,6 +1,8 @@
 ﻿using BLL;
 using DAL.DTO;
+using DAL.DTO.Authentication;
 using DAL.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +10,7 @@ namespace ECommerce.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class CategoryController : ControllerBase
     {
         private readonly CategoryBLL _categoryBLL;
@@ -21,6 +24,7 @@ namespace ECommerce.API.Controllers
             _logger = logger;
         }
         [HttpGet("get-all-category")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllCategory()
         {
             try
@@ -41,6 +45,7 @@ namespace ECommerce.API.Controllers
             }
         }
         [HttpGet("get-category-by-id/{categoryid}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetCategoryById(int categoryid)
         {
             try
@@ -61,10 +66,12 @@ namespace ECommerce.API.Controllers
             }
         }
         [HttpPost("create-category")]
+        [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> CreateCategory([FromBody] CategoryVM categoryVM)
         {
             try
             {
+
                 _logger.LogInformation("Creating a new category.");
 
                 await _categoryBLL.CreateCategory(categoryVM);
@@ -81,6 +88,7 @@ namespace ECommerce.API.Controllers
             }
         }
         [HttpPut("update-category/{id}")]
+        [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> UpdateCategory(int id,[FromBody] UpdateCategoryVM categoryVM)
         {
             try
@@ -101,6 +109,7 @@ namespace ECommerce.API.Controllers
             }
         }
         [HttpDelete("delete-category-by-id/{id}")]
+        [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> DeleteCategoryById(int id)
         {
             try

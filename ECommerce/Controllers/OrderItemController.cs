@@ -1,11 +1,15 @@
 using BLL;
+using DAL.DTO.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ECommerce.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class OrderItemController : ControllerBase
     {
         private readonly OrderItemBLL _orderItemBLL;
@@ -24,6 +28,9 @@ namespace ECommerce.API.Controllers
         {
             try
             {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userRole = User.FindFirstValue(ClaimTypes.Role);
+
                 _logger.LogInformation("Fetching order items for order ID {OrderId}.", orderId);
 
                 var res = await _orderItemBLL.GetOrderItemsByOrderId(orderId);
@@ -55,6 +62,9 @@ namespace ECommerce.API.Controllers
         {
             try
             {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userRole = User.FindFirstValue(ClaimTypes.Role);
+
                 _logger.LogInformation("Fetching order item with ID {OrderItemId}.", id);
 
                 var res = await _orderItemBLL.GetOrderItemById(id);

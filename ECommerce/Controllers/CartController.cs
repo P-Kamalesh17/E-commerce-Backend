@@ -1,11 +1,15 @@
 using BLL;
 using DAL.DTO;
+using DAL.DTO.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ECommerce.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = UserRoles.User)]
     public class CartController : ControllerBase
     {
         private readonly CartBLL _cartBLL;
@@ -19,12 +23,22 @@ namespace ECommerce.API.Controllers
             _logger = logger;
         }
 
-        [HttpGet("get-cart/{userId}")]
-        public async Task<IActionResult> GetCart(string userId)
+        [HttpGet("get-cart")]
+        public async Task<IActionResult> GetCart()
         {
             try
             {
-                var cart = await _cartBLL.GetCartByUserId(userId);
+                string? currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if(string.IsNullOrWhiteSpace(currentUserId))
+                {
+                    return Unauthorized(new
+                    {
+                        message = "User ID was not found in the access token."
+                    });
+                }
+
+                var cart = await _cartBLL.GetCartByUserId(currentUserId);
 
                 if (cart == null)
                 {
@@ -38,7 +52,7 @@ namespace ECommerce.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while fetching cart for user {UserId}.", userId);
+                _logger.LogError(ex, "Error while fetching cart for user {UserId}.", User.FindFirstValue(ClaimTypes.NameIdentifier));
 
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
@@ -47,12 +61,22 @@ namespace ECommerce.API.Controllers
             }
         }
 
-        [HttpGet("get-cart-summary/{userId}")]
-        public async Task<IActionResult> GetCartSummary(string userId)
+        [HttpGet("get-cart-summary")]
+        public async Task<IActionResult> GetCartSummary()
         {
             try
             {
-                var summary = await _cartBLL.GetCartSummary(userId);
+                string? currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if(string.IsNullOrWhiteSpace(currentUserId))
+                {
+                    return Unauthorized(new
+                    {
+                        message = "User ID was not found in the access token."
+                    });
+                }
+
+                var summary = await _cartBLL.GetCartSummary(currentUserId);
 
                 return Ok(summary);
             }
@@ -65,7 +89,7 @@ namespace ECommerce.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while fetching cart summary for user {UserId}.", userId);
+                _logger.LogError(ex, "Error while fetching cart summary for user {UserId}.", User.FindFirstValue(ClaimTypes.NameIdentifier));
 
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
@@ -79,6 +103,18 @@ namespace ECommerce.API.Controllers
         {
             try
             {
+                string? currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrWhiteSpace(currentUserId))
+                {
+                    return Unauthorized(new
+                    {
+                        message = "User ID was not found in the access token."
+                    });
+                }
+
+                addCartItemVM.UserId = currentUserId;
+
                 await _cartBLL.AddItem(addCartItemVM);
 
                 return StatusCode(StatusCodes.Status201Created, new
@@ -194,12 +230,22 @@ namespace ECommerce.API.Controllers
             }
         }
 
-        [HttpDelete("clear-cart/{userId}")]
-        public async Task<IActionResult> ClearCart(string userId)
+        [HttpDelete("clear-cart")]
+        public async Task<IActionResult> ClearCart()
         {
             try
             {
-                await _cartBLL.ClearCart(userId);
+                string? currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if(string.IsNullOrWhiteSpace(currentUserId))
+                {
+                    return Unauthorized(new
+                    {
+                        message = "User ID was not found in the access token."
+                    });
+                }
+
+                await _cartBLL.ClearCart(currentUserId);
 
                 return Ok(new
                 {
@@ -215,7 +261,7 @@ namespace ECommerce.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while clearing cart for user {UserId}.", userId);
+                _logger.LogError(ex, "Error while clearing cart for user {UserId}.", User.FindFirstValue(ClaimTypes.NameIdentifier));
 
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
