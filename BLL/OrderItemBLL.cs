@@ -3,7 +3,7 @@ using DAL.Services;
 
 namespace BLL
 {
-    public class OrderItemBLL
+    public class OrderItemBLL : IOrderItemService
     {
         private readonly OrderItemDAO _orderItemDAO;
 

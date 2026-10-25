@@ -22,13 +22,15 @@ namespace ECommerce.API.Controllers
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
 
+        private readonly ILogger<AuthenticationController> _logger;
         ////Refresh Token
         //private readonly TokenValidationParameters _tokenValidationParameters;
 
         public AuthenticationController(UserManager<User> userManager,
                 RoleManager<IdentityRole> roleManager,
                 AppDbContext context,
-                IConfiguration configuration
+                IConfiguration configuration,
+                ILogger<AuthenticationController> logger
                 //TokenValidationParameters tokenValidationParameters
             )
         {
@@ -36,6 +38,7 @@ namespace ECommerce.API.Controllers
             _roleManager = roleManager;
             _context = context;
             _configuration = configuration;
+            _logger = logger;
             //_tokenValidationParameters = tokenValidationParameters;
         }
         private static List<string> ValidatePassword(string password)
@@ -70,54 +73,66 @@ namespace ECommerce.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterVM payload)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest("Please, provide all required fields");
-            }
-            var passwordErrors = ValidatePassword(payload.Password);
-
-            if (passwordErrors.Any())
-            {
-                return BadRequest(new
+                if (!ModelState.IsValid)
                 {
-                    Message = "Password validation failed.",
-                    Errors = passwordErrors
+                    return BadRequest("Please, provide all required fields");
+                }
+                var passwordErrors = ValidatePassword(payload.Password);
+
+                if (passwordErrors.Any())
+                {
+                    return BadRequest(new
+                    {
+                        Message = "Password validation failed.",
+                        Errors = passwordErrors
+                    });
+                }
+
+                var userExists = await _userManager.FindByEmailAsync(payload.Email);
+
+                if (userExists != null)
+                {
+                    return BadRequest($"User {payload.Email} already exists");
+                }
+
+                var newUser = new User
+                {
+                    FullName = payload.FullName,
+                    Email = payload.Email,
+                    UserName = payload.Email,
+                    PhoneNumber = payload.PhoneNumber,
+                    Address = payload.Address,
+                    CreatedAt = DateTime.Now,
+                    SecurityStamp = Guid.NewGuid().ToString()
+                };
+
+                var result = await _userManager.CreateAsync(newUser, payload.Password);
+
+                if (!result.Succeeded)
+                {
+            
+                    return BadRequest(new
+                    {
+                        Message = "User creation failed.",
+                        Errors = result.Errors.Select(e => e.Description)
+                    });
+                }
+
+                // Assign the user to the "User" role
+                await _userManager.AddToRoleAsync(newUser, UserRoles.User);
+
+                return Created(nameof(Register), $"User {payload.Email} created successfully");
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, " Register failed");   
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "An error occurred while Registering."
                 });
             }
-
-            var userExists = await _userManager.FindByEmailAsync(payload.Email);
-
-            if (userExists != null)
-            {
-                return BadRequest($"User {payload.Email} already exists");
-            }
-
-            var newUser = new User
-            {
-                FullName = payload.FullName,
-                Email = payload.Email,
-                UserName = payload.Email,
-                PhoneNumber = payload.PhoneNumber,
-                Address = payload.Address,
-                CreatedAt = DateTime.Now,
-                SecurityStamp = Guid.NewGuid().ToString()
-            };
-
-            var result = await _userManager.CreateAsync(newUser, payload.Password);
-
-            if (!result.Succeeded)
-            {
-                return BadRequest(new
-                {
-                    Message = "User creation failed.",
-                    Errors = result.Errors.Select(e => e.Description)
-                });
-            }
-
-            // Assign the user to the "User" role
-            await _userManager.AddToRoleAsync(newUser, UserRoles.User);
-
-            return Created(nameof(Register), $"User {payload.Email} created successfully");
         }
 
         [HttpPost("login-user")]

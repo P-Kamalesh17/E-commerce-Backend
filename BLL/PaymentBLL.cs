@@ -3,7 +3,7 @@ using DAL.Services;
 
 namespace BLL
 {
-    public class PaymentBLL
+    public class PaymentBLL : IPaymentService
     {
         private readonly PaymentDAO _paymentDAO;
 

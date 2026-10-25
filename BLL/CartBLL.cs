@@ -3,7 +3,7 @@ using DAL.Services;
 
 namespace BLL
 {
-    public class CartBLL
+    public class CartBLL : ICartService
     {
         private readonly CartDAO _cartDAO;
 

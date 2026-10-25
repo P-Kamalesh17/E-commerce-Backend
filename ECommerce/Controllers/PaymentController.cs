@@ -13,11 +13,11 @@ namespace ECommerce.API.Controllers
     [Authorize]
     public class PaymentController : ControllerBase
     {
-        private readonly PaymentBLL _paymentBLL;
+        private readonly IPaymentService _paymentBLL;
         private readonly ILogger<PaymentController> _logger;
 
         public PaymentController(
-            PaymentBLL paymentBLL,
+            IPaymentService paymentBLL,
             ILogger<PaymentController> logger)
         {
             _paymentBLL = paymentBLL;

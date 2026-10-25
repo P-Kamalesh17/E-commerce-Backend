@@ -13,18 +13,18 @@ namespace ECommerce.API.Controllers
     [Authorize]
     public class CategoryController : ControllerBase
     {
-        private readonly CategoryBLL _categoryBLL;
+        private readonly ICategoryService _categoryBLL;
         private readonly ILogger<CategoryController> _logger;
 
         public CategoryController(
-            CategoryBLL categoryBLL,
+            ICategoryService categoryBLL,
             ILogger<CategoryController> logger)
         {
             _categoryBLL = categoryBLL;
             _logger = logger;
         }
         [HttpGet("get-all-category")]
-        [AllowAnonymous]
+        [Authorize(Roles = UserRoles.Admin+ "," + UserRoles.User)]
         public async Task<IActionResult> GetAllCategory()
         {
             try

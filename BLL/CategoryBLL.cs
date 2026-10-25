@@ -7,7 +7,7 @@ using System.Text;
 
 namespace BLL
 {
-    public class CategoryBLL
+    public class CategoryBLL : ICategoryService
     {
         private readonly CategoryDAO _categoryDAO;
         public CategoryBLL(CategoryDAO categoryDAO)

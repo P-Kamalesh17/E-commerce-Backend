@@ -54,19 +54,19 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Register your DAO and BLL
 builder.Services.AddScoped<UserDAO>();
-builder.Services.AddScoped<UserBLL>();
+builder.Services.AddScoped<IUserService, UserBLL>();
 builder.Services.AddScoped<ProductDAO>();
-builder.Services.AddScoped<ProductBLL>();
+builder.Services.AddScoped<IProductService, ProductBLL>();
 builder.Services.AddScoped<CategoryDAO>();
-builder.Services.AddScoped<CategoryBLL>();
+builder.Services.AddScoped<ICategoryService, CategoryBLL>();
 builder.Services.AddScoped<CartDAO>();
-builder.Services.AddScoped<CartBLL>();
+builder.Services.AddScoped<ICartService, CartBLL>();
 builder.Services.AddScoped<OrderDAO>();
-builder.Services.AddScoped<OrderBLL>();
+builder.Services.AddScoped<IOrderService, OrderBLL>();
 builder.Services.AddScoped<OrderItemDAO>();
-builder.Services.AddScoped<OrderItemBLL>();
+builder.Services.AddScoped<IOrderItemService, OrderItemBLL>();
 builder.Services.AddScoped<PaymentDAO>();
-builder.Services.AddScoped<PaymentBLL>();
+builder.Services.AddScoped<IPaymentService, PaymentBLL>();
 
 // Register File Upload Service
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();

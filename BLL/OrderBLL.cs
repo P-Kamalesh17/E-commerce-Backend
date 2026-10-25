@@ -7,7 +7,7 @@ using System.Text;
 
 namespace BLL
 {
-    public class OrderBLL
+    public class OrderBLL : IOrderService
     {
         private readonly OrderDAO _orderDAO;
         public OrderBLL(OrderDAO orderDAO)

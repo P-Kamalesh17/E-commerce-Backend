@@ -3,7 +3,7 @@ using DAL.Services;
 
 namespace BLL
 {
-    public class UserBLL
+    public class UserBLL : IUserService
     {
         private readonly UserDAO _userDAO;
 

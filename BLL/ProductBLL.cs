@@ -3,7 +3,7 @@ using DAL.Services;
 
 namespace BLL
 {
-    public class ProductBLL
+    public class ProductBLL : IProductService
     {
         private readonly ProductDAO _productDAO;
 

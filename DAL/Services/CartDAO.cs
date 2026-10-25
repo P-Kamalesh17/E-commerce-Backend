@@ -78,6 +78,7 @@ namespace DAL.Services
                 };
 
                 _context.Carts.Add(cart);
+                _context.SaveChanges();
             }
 
             var existingItem = cart.CartItems
@@ -86,7 +87,7 @@ namespace DAL.Services
             if (existingItem != null)
             {
                 existingItem.Quantity += addCartItemVM.Quantity;
-                existingItem.UpdatedAt = DateTime.UtcNow;
+                existingItem.UpdatedAt = DateTime.UtcNow;   
             }
             else
             {
@@ -177,9 +178,17 @@ namespace DAL.Services
                 );
             }
 
+            var existingUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == checkoutVM.UserId);
+
+            checkoutVM.ShippingAddress = existingUser?.Address;
+
             if (string.IsNullOrWhiteSpace(checkoutVM.ShippingAddress))
             {
-                throw new ArgumentException("Shipping address is required.");
+                throw new ArgumentException(
+                    "A shipping address is required, and no saved address was found for this user.",
+                    nameof(checkoutVM.ShippingAddress)
+                );
             }
 
             var cart = await GetCartWithItems(checkoutVM.UserId);

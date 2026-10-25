@@ -12,11 +12,11 @@ namespace ECommerce.API.Controllers
     [Authorize(Roles = UserRoles.User)]
     public class CartController : ControllerBase
     {
-        private readonly CartBLL _cartBLL;
+        private readonly ICartService _cartBLL;
         private readonly ILogger<CartController> _logger;
 
         public CartController(
-            CartBLL cartBLL,
+            ICartService cartBLL,
             ILogger<CartController> logger)
         {
             _cartBLL = cartBLL;
@@ -275,6 +275,18 @@ namespace ECommerce.API.Controllers
         {
             try
             {
+                string? currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrWhiteSpace(currentUserId))
+                {
+                    return Unauthorized(new
+                    {
+                        message = "User ID was not found in the access token."
+                    });
+                }
+
+                checkoutVM.UserId = currentUserId;
+
                 var order = await _cartBLL.Checkout(checkoutVM);
 
                 return StatusCode(StatusCodes.Status201Created, order);

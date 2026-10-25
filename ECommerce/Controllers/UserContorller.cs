@@ -12,11 +12,11 @@ namespace ECommerce.API.Controllers
     [Authorize]
     public class UserController : ControllerBase
     {
-        private readonly UserBLL _userBLL;
+        private readonly IUserService _userBLL;
         private readonly ILogger<UserController> _logger;
 
         public UserController(
-            UserBLL userBLL,
+            IUserService userBLL,
             ILogger<UserController> logger)
         {
             _userBLL = userBLL;

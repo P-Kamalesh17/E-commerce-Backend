@@ -46,6 +46,6 @@ namespace DAL.DTO
     public class CheckoutVM
     {
         public string UserId { get; set; }
-        public string ShippingAddress { get; set; }
+        public string? ShippingAddress { get; set; }
     }
 }

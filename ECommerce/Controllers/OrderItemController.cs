@@ -12,11 +12,11 @@ namespace ECommerce.API.Controllers
     [Authorize]
     public class OrderItemController : ControllerBase
     {
-        private readonly OrderItemBLL _orderItemBLL;
+        private readonly IOrderItemService _orderItemBLL;
         private readonly ILogger<OrderItemController> _logger;
 
         public OrderItemController(
-            OrderItemBLL orderItemBLL,
+            IOrderItemService orderItemBLL,
             ILogger<OrderItemController> logger)
         {
             _orderItemBLL = orderItemBLL;

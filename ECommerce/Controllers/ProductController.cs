@@ -12,12 +12,12 @@ namespace ECommerce.API.Controllers
     [Authorize]
     public class ProductController : ControllerBase
     {
-        private readonly ProductBLL _productBLL;
+        private readonly IProductService _productBLL;
         private readonly ILogger<ProductController> _logger;
         private readonly IFileUploadService _fileUploadService;
 
         public ProductController(
-            ProductBLL productBLL,
+            IProductService productBLL,
             ILogger<ProductController> logger,
             IFileUploadService fileUploadService
            )
